@@ -7,7 +7,7 @@ on:
 
 jobs:
   use-checkout-and-build:
-    uses: ./.github/workflows/checkout-and-build.yml
+    uses: MuhammadWara/ChatApp/.github/workflows/checkout-and-build.yml@main
 
   additional-steps:
     runs-on: ubuntu-latest
