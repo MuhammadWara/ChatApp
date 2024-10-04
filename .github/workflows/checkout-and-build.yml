@@ -1,4 +1,4 @@
-name: Checkout Workflow
+name: Checkout and Build
 
 on:
   workflow_call:
@@ -9,10 +9,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: testing 
-        run: echo " chal gaya yaha tk"
 
-
-        
-      
-  
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
