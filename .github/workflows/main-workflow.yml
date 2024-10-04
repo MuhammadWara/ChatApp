@@ -3,18 +3,19 @@ name: Main Workflow
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
-  use-checkout:
-    uses: ./.github/workflows/checkout-workflow.yml
+  use-checkout-and-build:
+    uses: ./.github/workflows/checkout-and-build.yml
 
   additional-steps:
     runs-on: ubuntu-latest
-    needs: use-checkout  # Ensures this job runs after the checkout job
+    needs: use-checkout-and-build  
     steps:
-      - name: Display current directory
-        run: pwd
+      - name: Run tests
+        run: npm test
 
-      - name: List files
-        run: ls -la
+      - name: Deploy
+        run: |
+          ls -lah
