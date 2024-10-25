@@ -6,45 +6,46 @@ on:
       - master
       - develop
 
-
 jobs:
   set-run-number:
     runs-on: ubuntu-latest
+    name: "${{ github.event.inputs.branch_name }} #${{ steps.get_last_run.outputs.new_run_number }}"
     steps:
-      - name: Set up custom run number
-        id: set_run_number
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get last run number
+        id: get_last_run
         run: |
-          BRANCH_NAME=$(echo "${GITHUB_REF##*/}")
+          BRANCH_NAME="${{ github.event.inputs.branch_name }}"
           echo "Branch Name: $BRANCH_NAME"
 
-
-
-          # Define custom run numbers based on branch
-          if [ "$BRANCH_NAME" == "master" ]; then
-            LAST_RUN_NUMBER=$(gh run list --branch "$BRANCH_NAME" --limit 1 --json runNumber --jq '.[0].runNumber' || echo 0)
-            
-            echo "Last Run Number: $LAST_RUN_NUMBER"
-
-            # Calculate new run number
-            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
-            echo "New Run Number: $NEW_RUN_NUMBER"
-            echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
-
-           elif [ "$BRANCH_NAME" == "develop" ]; then
-            LAST_RUN_NUMBER=$(gh run list --branch "$BRANCH_NAME" --limit 1 --json runNumber --jq '.[0].runNumber' || echo 0)
-            
-            echo "Last Run Number: $LAST_RUN_NUMBER"
-
-            # Calculate new run number
-            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 101))
-            echo "New Run Number: $NEW_RUN_NUMBER"
-            echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
-           else
-            echo "normal workflow t"
+          # Define starting run numbers for each branch
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            STARTING_RUN_NUMBER=1
+          elif [[ "$BRANCH_NAME" == "develop" ]]; then
+            STARTING_RUN_NUMBER=101
+          else
+            echo "Unsupported branch: $BRANCH_NAME"
+            exit 1
           fi
 
-          echo "Custom Run Number: $RUN_NUMBER"
-          echo "run_number=$RUN_NUMBER" >> $GITHUB_ENV
+          # Fetch the last run number for the specified branch
+          LAST_RUN_NUMBER=$(curl -s -H "Authorization: token ${{ secret.TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=${BRANCH_NAME}&status=success" | \
+            jq '.workflow_runs[0].run_number // 0')
+
+          echo "Last Run Number: $LAST_RUN_NUMBER"
+
+          # Calculate new run number
+          if [ "$LAST_RUN_NUMBER" -eq 0 ]; then
+            NEW_RUN_NUMBER=$STARTING_RUN_NUMBER
+          else
+            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
+          fi
+
+          echo "New Run Number: $NEW_RUN_NUMBER"
+          echo "new_run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
 
       - name: Print Run Number
-        run: echo "Run Number is ${{ env.run_number }}"
+        run: echo "Run Number is ${{ env.new_run_number }}"
