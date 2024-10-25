@@ -30,7 +30,7 @@ jobs:
             echo "New Run Number: $NEW_RUN_NUMBER"
             echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
 
-          else [ "$BRANCH_NAME" == "develop" ]; then
+           elif [ "$BRANCH_NAME" == "develop" ]; then
             LAST_RUN_NUMBER=$(gh run list --branch "$BRANCH_NAME" --limit 1 --json runNumber --jq '.[0].runNumber' || echo 0)
             
             echo "Last Run Number: $LAST_RUN_NUMBER"
@@ -39,6 +39,8 @@ jobs:
             NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
             echo "New Run Number: $NEW_RUN_NUMBER"
             echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
+           else
+            echo "normal workflow"
           fi
 
           echo "Custom Run Number: $RUN_NUMBER"
