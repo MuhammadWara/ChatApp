@@ -1,4 +1,4 @@
-name: Automatic Incremental Run Number
+name: Custom Run Number Logic
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
       - develop
 
 jobs:
-  set-run-number:
+  calculate-run-number:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Get last run number
-        id: get_last_run
+      - name: Determine Branch and Starting Run Number
+        id: set_run_number
         run: |
           BRANCH_NAME="${GITHUB_REF##*/}"
           echo "Branch Name: $BRANCH_NAME"
@@ -29,14 +29,14 @@ jobs:
             exit 1
           fi
 
-          # Fetch the last run number for the specified branch
+          # Fetch the last successful run number for the specified branch
           LAST_RUN_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=${BRANCH_NAME}&status=success" | \
             jq '.workflow_runs[0].run_number // 0')
 
           echo "Last Run Number: $LAST_RUN_NUMBER"
 
-          # Calculate new run number
+          # Calculate the new run number
           if [ "$LAST_RUN_NUMBER" -eq 0 ]; then
             NEW_RUN_NUMBER=$STARTING_RUN_NUMBER
           else
@@ -47,4 +47,4 @@ jobs:
           echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
 
       - name: Print Run Number
-        run: echo "Run Number is ${{ env.run_number }}"
+        run: echo "Run Number for this execution is ${{ env.run_number }}"
