@@ -21,7 +21,7 @@ jobs:
 
           # Define starting run numbers for each branch
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            STARTING_RUN_NUMBER=2
+            STARTING_RUN_NUMBER=33
           elif [[ "$BRANCH_NAME" == "develop" ]]; then
             STARTING_RUN_NUMBER=101
           else
