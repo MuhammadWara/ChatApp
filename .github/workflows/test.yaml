@@ -1,9 +1,9 @@
-name: Custom Run Number Workflow
+name: Automatic Incremental Run Number
 
 on:
   push:
     branches:
-      - master
+      - main
       - develop
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       - name: Get last run number
         id: get_last_run
         run: |
-          BRANCH_NAME="${{ github.event.inputs.branch_name }}"
+          BRANCH_NAME="${GITHUB_REF##*/}"
           echo "Branch Name: $BRANCH_NAME"
 
           # Define starting run numbers for each branch
@@ -30,7 +30,7 @@ jobs:
           fi
 
           # Fetch the last run number for the specified branch
-          LAST_RUN_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          LAST_RUN_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=${BRANCH_NAME}&status=success" | \
             jq '.workflow_runs[0].run_number // 0')
 
@@ -45,10 +45,6 @@ jobs:
 
           echo "New Run Number: $NEW_RUN_NUMBER"
           echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
-
-      - name: Set job name
-        id: set_name
-        run: echo "job_name=${{ github.event.inputs.branch_name }} #${{ env.run_number }}" >> $GITHUB_ENV
 
       - name: Print Run Number
         run: echo "Run Number is ${{ env.run_number }}"
