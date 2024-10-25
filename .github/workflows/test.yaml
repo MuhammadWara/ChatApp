@@ -36,11 +36,11 @@ jobs:
             echo "Last Run Number: $LAST_RUN_NUMBER"
 
             # Calculate new run number
-            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
+            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 101))
             echo "New Run Number: $NEW_RUN_NUMBER"
             echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
            else
-            echo "normal workflow"
+            echo "normal workflow t"
           fi
 
           echo "Custom Run Number: $RUN_NUMBER"
