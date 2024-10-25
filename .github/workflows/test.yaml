@@ -1,0 +1,48 @@
+name: Custom Run Number Workflow
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+
+
+jobs:
+  set-run-number:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up custom run number
+        id: set_run_number
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF##*/}")
+          echo "Branch Name: $BRANCH_NAME"
+
+
+
+          # Define custom run numbers based on branch
+          if [ "$BRANCH_NAME" == "master" ]; then
+            LAST_RUN_NUMBER=$(gh run list --branch "$BRANCH_NAME" --limit 1 --json runNumber --jq '.[0].runNumber' || echo 0)
+            
+            echo "Last Run Number: $LAST_RUN_NUMBER"
+
+            # Calculate new run number
+            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
+            echo "New Run Number: $NEW_RUN_NUMBER"
+            echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
+
+          else [ "$BRANCH_NAME" == "develop" ]; then
+            LAST_RUN_NUMBER=$(gh run list --branch "$BRANCH_NAME" --limit 1 --json runNumber --jq '.[0].runNumber' || echo 0)
+            
+            echo "Last Run Number: $LAST_RUN_NUMBER"
+
+            # Calculate new run number
+            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
+            echo "New Run Number: $NEW_RUN_NUMBER"
+            echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
+          fi
+
+          echo "Custom Run Number: $RUN_NUMBER"
+          echo "run_number=$RUN_NUMBER" >> $GITHUB_ENV
+
+      - name: Print Run Number
+        run: echo "Run Number is ${{ env.run_number }}"
