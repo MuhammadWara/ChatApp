@@ -7,44 +7,65 @@ on:
       - develop
 
 jobs:
-  calculate-run-number:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Generate build number
+      id: buildnumber
+      uses: onyxmueller/build-tag-number@v1
+      with:
+        token: ${{ secrets.github_token }}
+        prefix: ${{ github.github.ref_name }}
 
-      - name: Determine Branch and Starting Run Number
-        id: set_run_number
-        run: |
-          BRANCH_NAME="${GITHUB_REF##*/}"
-          echo "Branch Name: $BRANCH_NAME"
+    - run: |
+          write-output $env:build_number
+      env:
+        build_number: ${{ steps.buildnumber.outputs.build_number }}
+      shell: pwsh
 
-          # Define starting run numbers for each branch
-          if [[ "$BRANCH_NAME" == "main" ]]; then
-            STARTING_RUN_NUMBER=33
-          elif [[ "$BRANCH_NAME" == "develop" ]]; then
-            STARTING_RUN_NUMBER=101
-          else
-            echo "Unsupported branch: $BRANCH_NAME"
-            exit 1
-          fi
 
-          # Fetch the last successful run number for the specified branch
-          LAST_RUN_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=${BRANCH_NAME}&status=success" | \
-            jq '.workflow_runs[0].run_number // 0')
 
-          echo "Last Run Number: $LAST_RUN_NUMBER"
 
-          # Calculate the new run number
-          if [ "$LAST_RUN_NUMBER" -eq 0 ]; then
-            NEW_RUN_NUMBER=$STARTING_RUN_NUMBER
-          else
-            NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
-          fi
 
-          echo "New Run Number: $NEW_RUN_NUMBER"
-          echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
+# jobs:
+#   calculate-run-number:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
 
-      - name: Print Run Number
-        run: echo "Run Number for this execution is ${{ env.run_number }}"
+#       - name: Determine Branch and Starting Run Number
+#         id: set_run_number
+#         run: |
+#           BRANCH_NAME="${GITHUB_REF##*/}"
+#           echo "Branch Name: $BRANCH_NAME"
+
+#           # Define starting run numbers for each branch
+#           if [[ "$BRANCH_NAME" == "main" ]]; then
+#             STARTING_RUN_NUMBER=33
+#           elif [[ "$BRANCH_NAME" == "develop" ]]; then
+#             STARTING_RUN_NUMBER=101
+#           else
+#             echo "Unsupported branch: $BRANCH_NAME"
+#             exit 1
+#           fi
+
+#           # Fetch the last successful run number for the specified branch
+#           LAST_RUN_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.TOKEN }}" \
+#             "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=${BRANCH_NAME}&status=success" | \
+#             jq '.workflow_runs[0].run_number // 0')
+
+#           echo "Last Run Number: $LAST_RUN_NUMBER"
+
+#           # Calculate the new run number
+#           if [ "$LAST_RUN_NUMBER" -eq 0 ]; then
+#             NEW_RUN_NUMBER=$STARTING_RUN_NUMBER
+#           else
+#             NEW_RUN_NUMBER=$((LAST_RUN_NUMBER + 1))
+#           fi
+
+#           echo "New Run Number: $NEW_RUN_NUMBER"
+#           echo "run_number=$NEW_RUN_NUMBER" >> $GITHUB_ENV
+
+#       - name: Print Run Number
+#         run: echo "Run Number for this execution is ${{ env.run_number }}"
